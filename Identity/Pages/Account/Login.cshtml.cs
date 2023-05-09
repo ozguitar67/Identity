@@ -36,7 +36,7 @@ namespace Identity.Pages.Account
                         new Claim(ClaimTypes.Name, Credential.UserName),
                         new Claim(ClaimTypes.Email, "admin@mywebsite.com"),
                         new Claim("Department", "HR"),
-                        new Claim("Admin", "true"),
+                        //new Claim("Admin", "true"),
                         new Claim("Manager", "true"),
                         new Claim("EmploymentDate", "2021-05-01")
                     };
