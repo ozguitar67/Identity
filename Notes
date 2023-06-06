@@ -1,0 +1,12 @@
+
+
+qarogagifoh@gotgel.org
+Test1234!
+
+dotnet ef migrations add UpdateIdentity -p ".\Web App" -c ApplicationIdentityDbContext
+dotnet ef migrations remove -p ".\Web App" -c ApplicationIdentityDbContext
+dotnet ef database update -p ".\Web App" -c ApplicationIdentityDbContext
+
+dotnet ef migrations add AddCredentials -p ".\Web App" -c ApplicationDbContext
+dotnet ef migrations remove -p ".\Web App" -c ApplicationDbContext
+dotnet ef database update -p ".\Web App" -c ApplicationDbContext
