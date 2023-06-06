@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Web_App.Data;
+using Web_App.Services;
+using Web_App.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
     
-});
+    });
 
 builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
     {
@@ -28,7 +31,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     })
     .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
     .AddDefaultTokenProviders();
-// Add services to the container.
+// Add services to the container
+builder.Services.Configure<SmtpSetting>(builder.Configuration.GetSection("SMTP"));
+builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();

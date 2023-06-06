@@ -6,18 +6,19 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Mail;
 using Web_App.Data;
+using Web_App.Services;
 
 namespace Web_App.Pages.Account
 {
     public class RegisterModel : PageModel
     {
         private readonly UserManager<IdentityUser> userManager;
-        private readonly ApplicationDbContext dbContext;
+        private readonly IEmailService _emailService;
 
-        public RegisterModel(UserManager<IdentityUser> userManager, ApplicationDbContext dbContext)
+        public RegisterModel(UserManager<IdentityUser> userManager, IEmailService emailService)
         {
             this.userManager = userManager;
-            this.dbContext = dbContext;
+            _emailService = emailService;
         }
 
         [BindProperty]
@@ -48,26 +49,17 @@ namespace Web_App.Pages.Account
                 var confirmationToken = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
                 var confirmationLink = Url.PageLink(pageName: "/Account/ConfirmEmail", values: new { userId = user.Id, token = confirmationToken });
 
-                var message = new MailMessage("ozguitar67@comcast.net", user.Email,
-                    "Please Confirm Your Email",
-                    $"Please click on this link to confirm your email address: {confirmationLink}");
+                bool emailSuccess = await _emailService.SendConfirmationAsync(user.Email, "Please Confirm Your Email", $"Please click this link to confirm your email address: {confirmationLink}");
 
-                Credentials? smtp = await dbContext.Credentials.AsNoTracking().Where(c => c.CredentialId == 1).FirstOrDefaultAsync();
-                if (smtp is not null)
+                if (emailSuccess)
                 {
-                    using var emailClient = new SmtpClient("smtp.comcast.net")
-                    {
-                        Port = 587,
-                        Credentials = new NetworkCredential(smtp.Username, smtp.Password),
-                        EnableSsl = true
-                    };                    
-
-                    await emailClient.SendMailAsync(message);
-
                     return RedirectToPage("/Account/Login");
                 }
-                ModelState.AddModelError("Register", "Registration Error");
-                return Page();
+                else
+                {
+                    ModelState.AddModelError("Register", "Registration Error");
+                    return Page();
+                }
             }
             else
             {
@@ -86,9 +78,9 @@ namespace Web_App.Pages.Account
     {
         [Required]
         [EmailAddress(ErrorMessage = "Invalid email address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         [Required]
         [DataType(dataType: DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
     }
 }
