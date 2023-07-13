@@ -6,7 +6,6 @@ using Web_App.Services;
 using Web_App.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
@@ -18,6 +17,11 @@ builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
     });
+builder.Services.AddAuthentication().AddFacebook(options =>
+{
+    options.AppId = builder.Configuration["FacebookAppId"];
+    options.AppSecret = builder.Configuration["FacebookAppSecret"];
+});
 builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
         options.Password.RequiredLength = 8;
@@ -36,6 +40,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 builder.Services.Configure<SmtpSetting>(builder.Configuration.GetSection("SMTP"));
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -54,6 +59,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapRazorPages();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapRazorPages();
+    endpoints.MapControllers();
+});
 
 app.Run();
